@@ -44,6 +44,28 @@ RISK_FACTOR = float(os.environ.get("RISK_FACTOR"))
 
 
 # Helper Functions
+def NormalizeSignal(signal: str) -> str:
+    normalized_signal = re.sub(r'[🔱💲✔️❌🦅🦅🦅🦅]', '', signal)
+    normalized_signal = re.sub(r'[^\w\s@:.-]', '', normalized_signal)
+    normalized_signal = ' '.join(normalized_signal.split())
+    
+    lines = normalized_signal.splitlines()
+    lines = [line.strip() for line in lines if line.strip()]
+
+    normalized_lines = []
+    order_type_keywords = ['buy limit', 'sell limit', 'buy stop', 'sell stop', 'buy', 'sell']
+
+    for line in lines:
+        normalized_line = line.lower()
+        for keyword in order_type_keywords:
+            if keyword in normalized_line:
+                normalized_line = normalized_line.replace(keyword, keyword.capitalize(), 1)
+                break
+        normalized_lines.append(normalized_line)
+    
+    normalized_signal = '\n'.join(normalized_lines)
+    return normalized_signal
+
 def ParseSignal(signal: str) -> dict:
     """Starts process of parsing signal and entering trade on MetaTrader account.
 
@@ -55,8 +77,8 @@ def ParseSignal(signal: str) -> dict:
     """
 
     # converts message to list of strings for parsing
-    signal = signal.splitlines()
-    signal = [line.rstrip() for line in signal]
+    signal = NormalizeSignal(signal)
+    #signal = [line.rstrip() for line in signal]
 
     trade = {}
 
